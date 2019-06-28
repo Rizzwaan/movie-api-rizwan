@@ -16,8 +16,7 @@ const dropTables = () => new Promise((resolve, reject) => {
     if (err) {
       reject(err);
     } else {
-      console.log('Droped both table');
-      resolve(data);
+      resolve('Droped Both table');
     }
   });
 });
@@ -27,24 +26,21 @@ const createDirectorTable = () => new Promise((resolve, reject) => {
     if (err) {
       reject(err);
     } else {
-      console.log('Director table created');
-      resolve(data);
+      resolve('director table created');
     }
   });
 });
 
-const insertIntoDirectorTable = () => new Promise((resolve, reject) => {
-  uniqueDirectors.forEach((v) => {
-    connection.query(`INSERT INTO directors (director_name) values("${v}") `, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        console.log('Inseted Data Into Director Table');
-        resolve(data);
-      }
-    });
+const insertIntoDirectorTable = () => Promise.all([...uniqueDirectors].map(v => new Promise((resolve, reject) => {
+  connection.query(`INSERT INTO directors (director_name) values("${v}") `, (err, data) => {
+    if (err) {
+      reject(err);
+    } else {
+      console.log('Inseted Data Into Director Table');
+      resolve(1);
+    }
   });
-});
+})));
 
 
 const getDirectorId = v => new Promise((resolve, reject) => {
@@ -84,13 +80,13 @@ const createMovieTable = () => new Promise((resolve, reject) => {
 });
 
 
-const insertIntoMovieTable = () => new Promise((resolve, reject) => {
-  movies.forEach((v) => {
+const insertIntoMovieTable = () => Promise.all(
+  movies.map(v => new Promise((resolve, reject) => {
     const dirId = getDirectorId(v.Director);
     dirId.then((dID) => {
       connection.query(`insert into movies (title,description,runtime, genre,  rating, metascore,votes,gross_Earning_in_Mil,actor,director_id,year_of_release )
-        values("${v.Title}","${v.Description}","${v.Runtime}","${v.Genre}",${v.Rating},
-        "${v.Metascore}",${v.Votes},"${v.Gross_Earning_in_Mil}","${v.Actor}",${dID},${v.Year})`, (err, data) => {
+          values("${v.Title}","${v.Description}","${v.Runtime}","${v.Genre}",${v.Rating},
+          "${v.Metascore}",${v.Votes},"${v.Gross_Earning_in_Mil}","${v.Actor}",${dID},${v.Year})`, (err, data) => {
         if (err) {
           reject(err);
         } else {
@@ -99,12 +95,15 @@ const insertIntoMovieTable = () => new Promise((resolve, reject) => {
         }
       });
     });
-  });
-});
+  })),
+);
 
 dropTables()
+  .then(data => console.log(data))
   .then(() => createDirectorTable())
+  .then(data => console.log(data))
   .then(() => insertIntoDirectorTable())
+  .then(data => console.log(data))
   .then(() => createMovieTable())
   .then(() => insertIntoMovieTable())
   .then(() => connection.end())

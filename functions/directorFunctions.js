@@ -5,13 +5,13 @@ const connection = connectDb.connectToDatabase();
 // Get all directors
 
 const getAllDirectors = () => new Promise((resolve, reject) => {
-  connection.query('select director_name from directors;', (err, data) => {
+  connection.query('select * from directors;', (err, data) => {
     if (err) {
       reject(err);
-      connection.end();
+      // connection.end();
     } else {
       resolve(data);
-      connection.end();
+      // connection.end();
     }
   });
 });
@@ -22,13 +22,14 @@ const getAllDirectors = () => new Promise((resolve, reject) => {
 // Get the director with given ID
 
 const getDirectorWithSpecificId = id => new Promise((resolve, reject) => {
+  console.log(id);
   connection.query(`select director_name from directors where id=${id}`, (err, data) => {
     if (err) {
       reject(err);
-      connection.end();
+      // connection.end();
     } else {
       resolve(data);
-      connection.end();
+      // connection.end();
     }
   });
 });
@@ -43,10 +44,10 @@ const addNewDirector = directorName => new Promise((resolve, reject) => {
   connection.query(`insert into directors(director_name) values("${directorName}")`, (err, data) => {
     if (err) {
       reject(err);
-      connection.end();
+      // connection.end();
     } else {
-      resolve(data);
-      connection.end();
+      resolve('director Added');
+      // connection.end();
     }
   });
 });
@@ -58,10 +59,10 @@ const updateDirectorWithId = (id, newName) => new Promise((resolve, reject) => {
   connection.query(`update directors set director_name="${newName}" where id=${id}`, (err, data) => {
     if (err) {
       reject(err);
-      connection.end();
+      // connection.end();
     } else {
       resolve(data);
-      connection.end();
+      // connection.end();
     }
   });
 });
@@ -70,15 +71,29 @@ const updateDirectorWithId = (id, newName) => new Promise((resolve, reject) => {
 // Delete the director with given ID
 
 const deleteDirectorWithId = dirId => new Promise((resolve, reject) => {
-  connection.query(`DELETE FROM directors WHERE id=${dirId}`, (err, data) => {
-    if (err) {
-      reject(data);
-      connection.end();
+  connection.query(`select count(*) as count from directors where id =${dirId}`, (err, data) => {
+    if (data[0].count > 0) {
+      connection.query(`DELETE FROM directors WHERE id=${dirId}`, (err, val) => {
+        if (err) {
+          reject(val);
+          // connection.end();
+        } else {
+          resolve('director deleted');
+          // connection.end();
+        }
+      });
     } else {
-      resolve(data);
-      connection.end();
+      resolve('No director with that id');
     }
   });
 });
 
 // deleteDirectorWithId(36).then(v => console.log(v));
+
+module.exports = {
+  getAllDirectors,
+  getDirectorWithSpecificId,
+  addNewDirector,
+  updateDirectorWithId,
+  deleteDirectorWithId,
+};
